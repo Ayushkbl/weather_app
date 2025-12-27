@@ -1,10 +1,11 @@
-from fastapi import APIRouter, Query, status, HTTPException
+from fastapi import APIRouter, Query, status, HTTPException, Depends
 from typing import Annotated
 import os
 import requests
 from pathlib import Path
 from dotenv import load_dotenv
 import json
+from fastapi_limiter.depends import RateLimiter
 
 from app.models.weather import LanguageCode
 from app.core.redis import redis_client
@@ -17,10 +18,13 @@ dotenv_path = BASE_DIR / '.env'
 print(dotenv_path)
 load_dotenv(dotenv_path=dotenv_path)
 
-@router.post("/weather/current")
-def get_current_weather(query: str, language: Annotated[LanguageCode, Query(include_in_schema=False)] = LanguageCode.english):
+@router.get(
+        "/weather/current",
+        dependencies=[Depends(RateLimiter(times=5, seconds=60))]
+)
+async def get_current_weather(query: str, language: Annotated[LanguageCode, Query(include_in_schema=False)] = LanguageCode.english):
     cache_key = f"weather:{query.lower()}:{language.value}"
-    cached_data = redis_client.get(cache_key)
+    cached_data = await redis_client.get(cache_key)
     if cached_data:
         response_data = json.loads(cached_data)
         if "name" not in response_data:

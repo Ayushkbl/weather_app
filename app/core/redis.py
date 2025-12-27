@@ -1,6 +1,6 @@
 from pathlib import Path
 from dotenv import load_dotenv
-import redis
+from redis.asyncio import Redis
 import os
 
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
@@ -12,7 +12,7 @@ load_dotenv(dotenv_path=dotenv_path)
 REDIS_HOST = os.getenv("REDIS_HOST", "localhost")
 REDIS_PORT = int(os.getenv("REDIS_PORT", 6379))
 
-redis_client = redis.Redis(
+redis_client = Redis(
     host=REDIS_HOST,
     port=REDIS_PORT,
     decode_responses=True
