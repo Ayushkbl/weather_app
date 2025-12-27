@@ -18,7 +18,7 @@ print(dotenv_path)
 load_dotenv(dotenv_path=dotenv_path)
 
 @router.post("/weather/current")
-def get_current_weather(query: str, language: Annotated[LanguageCode, Query()]):
+def get_current_weather(query: str, language: Annotated[LanguageCode, Query(include_in_schema=False)] = LanguageCode.english):
     cache_key = f"weather:{query.lower()}:{language.value}"
     cached_data = redis_client.get(cache_key)
     if cached_data:
